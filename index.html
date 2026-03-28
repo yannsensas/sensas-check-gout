@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Sensas Allergène Checker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ========== ACCUEIL ========== -->
+<div id="screen-home" class="screen active">
+  <div class="content home-content">
+    <button class="btn btn-primary" onclick="showScreen('filtre')">🔍 Filtre Allergies</button>
+    <button class="btn btn-secondary" onclick="showScreen('liste')">📋 Liste des Aliments</button>
+  </div>
+</div>
+
+<!-- ========== FILTRE ALLERGIES ========== -->
+<div id="screen-filtre" class="screen">
+  <div class="topbar">
+    <button class="btn-topbar" onclick="showScreen('home')">← Accueil</button>
+    <span>Filtre Allergies</span>
+    <button class="btn-topbar btn-topbar-right" onclick="resetFiltre()">Reset ✕</button>
+  </div>
+  <div class="content">
+    <div class="allergen-grid" id="allergen-grid"></div>
+    <div class="results-section" id="filter-results"></div>
+  </div>
+</div>
+
+<!-- ========== LISTE ALIMENTS ========== -->
+<div id="screen-liste" class="screen">
+  <div class="topbar">
+    <button class="btn-topbar" onclick="showScreen('home')">← Accueil</button>
+    <span>Liste des Aliments</span>
+  </div>
+  <div class="content">
+    <ul class="food-list" id="food-list"></ul>
+  </div>
+</div>
+
+<!-- ========== MODAL DÉTAIL ALIMENT ========== -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+
+// ===== NAVIGATION =====
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  if (name === 'filtre') buildAllergenGrid();
+  if (name === 'liste') buildFoodList();
+  window.scrollTo(0, 0);
+}
+
+// ===== FILTRE ALLERGIES =====
+let selectedAllergens = new Set();
+
+function buildAllergenGrid() {
+  selectedAllergens = new Set();
+  const grid = document.getElementById('allergen-grid');
+  grid.innerHTML = ALLERGEN_KEYS.map(key => `
+    <label class="allergen-item" id="lbl-${key}" onclick="toggleAllergen('${key}')">
+      <span class="check-icon"></span>
+      <span>${ALLERGEN_LABELS[key]}</span>
+    </label>
+  `).join('');
+  document.getElementById('filter-results').innerHTML = '';
+}
+
+function toggleAllergen(key) {
+  if (selectedAllergens.has(key)) selectedAllergens.delete(key);
+  else selectedAllergens.add(key);
+  document.getElementById('lbl-' + key).classList.toggle('checked', selectedAllergens.has(key));
+  runFilter();
+}
+
+function resetFiltre() {
+  selectedAllergens.clear();
+  document.querySelectorAll('.allergen-item').forEach(el => el.classList.remove('checked'));
+  document.getElementById('filter-results').innerHTML = '';
+}
+
+function runFilter() {
+  const container = document.getElementById('filter-results');
+  if (selectedAllergens.size === 0) { container.innerHTML = ''; return; }
+
+  const grouped = [];
+  for (const key of ALLERGEN_KEYS) {
+    if (!selectedAllergens.has(key)) continue;
+    const items = foods.filter(f => f.allergens[key]);
+    if (items.length > 0) {
+      items.sort((a, b) => (a.allergens[key] === 'rouge' ? -1 : 1));
+      grouped.push({ key, items });
+    }
+  }
+
+  if (grouped.length === 0) {
+    container.innerHTML = `
+      <div class="success-box">
+        <p>✅</p>
+        <p>Aucun aliment à éviter !</p>
+        <p>Tous les aliments sont compatibles.</p>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = grouped.map(({ key, items }) => `
+    <div class="result-group">
+      <h3>${ALLERGEN_LABELS[key]}</h3>
+      <div>${items.map(f => `
+        <span class="food-tag ${f.allergens[key]}"
+          ${f.allergens[key] === 'orange' ? `onclick="openFoodModal('${f.name}')"` : ''}>
+          ${f.allergens[key] === 'rouge' ? '❌' : '⚠️'} ${f.name}
+          ${f.allergens[key] === 'orange' ? '<small>ⓘ</small>' : ''}
+        </span>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ===== LISTE ALIMENTS =====
+function buildFoodList() {
+  const sorted = [...foods].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  document.getElementById('food-list').innerHTML = sorted.map(f => `
+    <li onclick="openFoodModal('${f.name}')">
+      <span>${f.name}</span>
+      <span class="arrow">›</span>
+    </li>`).join('');
+}
+
+// ===== UTILITAIRE : nom fichier image =====
+// "Haricots verts" → "haricots verts.png"
+// Gère les caractères accentués (â, ê, é...) et les espaces
+function toImageName(name) {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // retire les accents
+    .replace(/\s+/g, ' ')            // espaces multiples → un seul
+    .trim() + '.png';
+}
+
+// ===== MODAL =====
+function openFoodModal(name) {
+  const food = foods.find(f => f.name === name);
+  if (!food) return;
+  const problematic = ALLERGEN_KEYS.filter(k => food.allergens[k]);
+  const safe = ALLERGEN_KEYS.filter(k => !food.allergens[k]);
+  const imgFile = toImageName(food.name);
+
+  const rows = problematic.map(k => `
+    <div class="allergen-row">
+      <span>${ALLERGEN_LABELS[k]}</span>
+      <span class="badge ${food.allergens[k]}">${food.allergens[k] === 'rouge' ? '❌ SÛR' : '⚠ VARIABLE'}</span>
+    </div>
+    ${food.allergens[k] === 'orange' ? `<div class="modal-expl">ℹ️ ${ALLERGEN_EXPL[k]}</div>` : ''}
+  `).join('');
+
+  document.getElementById('modal-content').innerHTML = `
+    <h2>${food.name}</h2>
+
+    ${problematic.length > 0 ? `
+      <div class="modal-section">
+        <h3>⚠ Allergènes présents</h3>
+        ${rows}
+      </div>` : `
+      <div class="success-box" style="margin:12px 0">
+        <p>✅</p>
+        <p>Aucun allergène connu</p>
+      </div>`}
+
+    ${safe.length > 0 ? `
+      <div class="modal-section">
+        <h3>✅ Sans risque pour</h3>
+        <div class="badge-list">${safe.map(k => `<span class="badge ok" style="margin:2px">${ALLERGEN_LABELS[k]}</span>`).join('')}</div>
+      </div>` : ''}
+
+    <div class="modal-img-wrap">
+      <img
+        src="images/${imgFile}"
+        alt="${food.name}"
+        class="modal-img"
+        onerror="this.parentElement.style.display='none'"
+      >
+    </div>
+
+    <button class="btn btn-back btn-sm" style="margin-top:16px;width:100%" onclick="closeModal()">Fermer</button>
+  `;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+</script>
+</body>
+</html>
