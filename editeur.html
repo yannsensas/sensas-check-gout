@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editeur Sensas</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f1117;--sf:#1a1d27;--sf2:#22263a;--bd:#2e3248;
+      --tx:#e8eaf6;--mu:#7b82a8;
+      --bl:#4d8ef0;--bld:#2a5db0;
+      --re:#f87171;--re2:#3b1212;
+      --or:#fbbf24;--or2:#3b2700;
+      --gr:#4ade80;--gr2:#0f2d1a;
+      --ra:12px;
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--tx);padding:20px;min-height:100vh;}
+    h1{font-size:1.35rem;font-weight:800;margin-bottom:4px;}
+    .sub{color:var(--mu);font-size:.88rem;margin-bottom:18px;}
+    .tabs{display:flex;gap:8px;margin-bottom:20px;}
+    .tab{flex:1;padding:9px 4px;border:2px solid var(--bd);border-radius:10px;background:var(--sf);color:var(--mu);font-weight:700;font-size:.82rem;cursor:pointer;text-align:center;}
+    .tab.on{border-color:var(--bl);color:var(--bl);background:#1a2a4a;}
+    .panel{display:none;} .panel.on{display:block;}
+    .notice{border-radius:8px;padding:10px 14px;font-size:.85rem;margin-bottom:10px;display:none;}
+    .n-ok{background:var(--gr2);border:1px solid #1f5c35;color:var(--gr);}
+    .n-err{background:var(--or2);border:1px solid #7a4d00;color:var(--or);}
+    .iz{background:var(--sf);border:2px dashed var(--bd);border-radius:var(--ra);padding:22px;text-align:center;margin-bottom:14px;}
+    .iz p{color:var(--mu);margin-bottom:12px;font-size:.9rem;}
+    label{display:block;font-size:.83rem;color:var(--mu);margin:12px 0 4px;}
+    input[type=text]{width:100%;padding:10px 12px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;color:var(--tx);font-size:.93rem;}
+    input[type=text]:focus{outline:2px solid var(--bl);border-color:transparent;}
+    .sec{font-size:.73rem;text-transform:uppercase;letter-spacing:.5px;color:var(--mu);margin:14px 0 8px;}
+    .ae-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+    .ae{background:var(--sf2);border:2px solid var(--bd);border-radius:9px;padding:8px 10px;cursor:pointer;user-select:none;}
+    .ae .lbl{font-size:.88rem;font-weight:700;color:var(--tx);margin-bottom:3px;}
+    .ae .st{font-size:.73rem;color:var(--mu);}
+    .ae.rouge{border-color:var(--re);background:var(--re2);}
+    .ae.rouge .lbl,.ae.rouge .st{color:var(--re);}
+    .ae.orange{border-color:var(--or);background:var(--or2);}
+    .ae.orange .lbl,.ae.orange .st{color:var(--or);}
+    .notes-zone{display:none;margin-bottom:12px;}
+    .nf{background:var(--sf);border:1px solid var(--bd);border-radius:9px;padding:11px;margin-bottom:8px;}
+    .nf .nl{font-size:.8rem;font-weight:700;margin-bottom:3px;}
+    .nf .nh{font-size:.73rem;color:var(--mu);margin-bottom:6px;}
+    .nl.rouge{color:var(--re);} .nl.orange{color:var(--or);}
+    .gb{display:block;width:100%;padding:13px;border:none;border-radius:10px;font-size:.93rem;font-weight:700;cursor:pointer;text-align:center;margin-top:10px;}
+    .gb-pr{background:var(--bl);color:#fff;}
+    .gb-out{background:var(--sf2);color:var(--bl);border:2px solid var(--bld);}
+    .gb-mu{background:var(--sf2);color:var(--mu);border:1px solid var(--bd);}
+    .gb-sm{display:inline-block;width:auto;padding:6px 12px;font-size:.8rem;font-weight:700;cursor:pointer;border-radius:8px;border:1px solid #7f2020;background:var(--re2);color:var(--re);}
+    .fle{list-style:none;margin-top:6px;}
+    .fle li{background:var(--sf);border:1px solid var(--bd);border-radius:10px;margin:6px 0;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+    .badges{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;}
+    .fb{padding:2px 8px;border-radius:20px;font-size:.71rem;font-weight:700;}
+    .fb.rouge{background:var(--re2);color:var(--re);} .fb.orange{background:var(--or2);color:var(--or);}
+    .exp-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+    .eb{display:block;width:100%;padding:14px;border:none;border-radius:var(--ra);font-size:.93rem;font-weight:700;cursor:pointer;text-align:center;color:#fff;}
+    .eb-copy{background:var(--bld);} .eb-dl{background:#1f5c35;}
+    .exp-box{background:var(--sf2);border:1px solid var(--bd);border-radius:var(--ra);padding:12px;font-family:monospace;font-size:.71rem;white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;color:var(--mu);}
+    .fbm{font-size:.83rem;text-align:center;min-height:20px;margin:6px 0;}
+  </style>
+</head>
+<body>
+
+<h1>✏️ Editeur Allergènes</h1>
+<p class="sub">Importe ton data.js, ajoute des aliments, exporte.</p>
+
+<div class="tabs">
+  <button class="tab on" id="t-import" onclick="go('import')">📂 Import</button>
+  <button class="tab"    id="t-add"    onclick="go('add')">➕ Ajouter</button>
+  <button class="tab"    id="t-list"   onclick="go('list')">📋 Liste</button>
+  <button class="tab"    id="t-export" onclick="go('export')">📤 Export</button>
+</div>
+
+<div class="panel on" id="p-import">
+  <div class="iz">
+    <p>Sélectionne ton fichier <strong>data.js</strong>.</p>
+    <input type="file" id="fi" accept=".js" style="display:none" onchange="doImport(event)">
+    <button class="gb gb-out" style="width:auto;display:inline-block;" onclick="document.getElementById('fi').click()">📂 Choisir data.js</button>
+  </div>
+  <div class="notice n-ok"  id="n-ok"></div>
+  <div class="notice n-err" id="n-err"></div>
+  <button class="gb gb-mu" onclick="go('add')">Continuer sans importer →</button>
+</div>
+
+<div class="panel" id="p-add">
+  <p class="sec">Informations</p>
+  <label>Nom de l'aliment *</label>
+  <input type="text" id="inp-name" placeholder="Ex: Cornichons">
+  <label>Image (optionnel)</label>
+  <input type="text" id="inp-img" placeholder="Ex: images/cornichons.jpg">
+  <p class="sec">Allergènes — clic pour cycler : aucun → rouge → orange</p>
+  <div class="ae-grid" id="ae-grid"></div>
+  <div class="notes-zone" id="notes-zone">
+    <p class="sec">📝 Note par allergène pour CET aliment (optionnel)</p>
+    <div id="notes-fields"></div>
+  </div>
+  <button class="gb gb-pr" onclick="doAdd()">✅ Ajouter l'aliment</button>
+  <p class="fbm" id="add-msg"></p>
+</div>
+
+<div class="panel" id="p-list">
+  <p id="list-cnt" style="color:var(--mu);font-size:.83rem;margin-bottom:6px;"></p>
+  <ul class="fle" id="fle"></ul>
+</div>
+
+<div class="panel" id="p-export">
+  <div class="exp-btns">
+    <button class="eb eb-copy" onclick="doCopy()">📋 Copier</button>
+    <button class="eb eb-dl"   onclick="doDl()">⬇️ Télécharger</button>
+  </div>
+  <p class="fbm" id="exp-msg"></p>
+  <p class="sec">Aperçu</p>
+  <div class="exp-box" id="exp-box"></div>
+</div>
+
+<script>
+var KEYS = ["gluten","oeuf","lait","arachides","fruitsCoque","soja","celeri","moutarde","sesame","lupin","poisson","crustaces","mollusques","sulfites","vegan","vegetarien","halal","casher"];
+var LBL = {
+  gluten:"Gluten", oeuf:"Oeuf", lait:"Lait", arachides:"Arachides",
+  fruitsCoque:"Fruits a coque", soja:"Soja", celeri:"Celeri",
+  moutarde:"Moutarde", sesame:"Sesame", lupin:"Lupin",
+  poisson:"Poisson", crustaces:"Crustaces", mollusques:"Mollusques",
+  sulfites:"Sulfites",
+  vegan:"Non vegan",
+  vegetarien:"Non vegetarien",
+  halal:"Non halal",
+  casher:"Non casher"
+};
+var foods = [];
+var cur = {};
+
+function go(tab) {
+  var tabs = ["import","add","list","export"];
+  for (var i = 0; i < tabs.length; i++) {
+    document.getElementById("t-" + tabs[i]).classList.remove("on");
+    document.getElementById("p-" + tabs[i]).classList.remove("on");
+  }
+  document.getElementById("t-" + tab).classList.add("on");
+  document.getElementById("p-" + tab).classList.add("on");
+  if (tab === "list") renderList();
+  if (tab === "export") renderExport();
+}
+
+function doImport(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var code = ev.target.result;
+      var start = code.indexOf("const foods = [");
+      if (start === -1) throw new Error("foods introuvable");
+      var bi = code.indexOf("[", start);
+      var depth = 0, end = -1;
+      for (var i = bi; i < code.length; i++) {
+        if (code[i] === "[") depth++;
+        else if (code[i] === "]") { depth--; if (depth === 0) { end = i; break; } }
+      }
+      if (end === -1) throw new Error("tableau mal forme");
+      var raw = code.slice(bi, end + 1);
+      raw = raw.replace(/\/\/[^\n]*/g, "");
+      raw = raw.replace(/,\s*([}\]])/g, "$1");
+      var parsed = JSON.parse(raw);
+      foods = [];
+      for (var i = 0; i < parsed.length; i++) {
+        foods.push({ name: parsed[i].name, allergens: parsed[i].allergens || {}, notes: parsed[i].notes || {}, image: parsed[i].image || null });
+      }
+      showNotice("n-ok", foods.length + " aliments charges depuis " + file.name);
+      showNotice("n-err", null);
+      setTimeout(function() { go("list"); }, 800);
+    } catch(err) {
+      showNotice("n-err", "Erreur : " + err.message);
+      showNotice("n-ok", null);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function showNotice(id, msg) {
+  var el = document.getElementById(id);
+  if (msg) { el.textContent = msg; el.style.display = "block"; }
+  else { el.style.display = "none"; }
+}
+
+function buildAeGrid() {
+  cur = {};
+  var g = document.getElementById("ae-grid");
+  g.innerHTML = "";
+  for (var i = 0; i < KEYS.length; i++) {
+    var k = KEYS[i];
+    cur[k] = null;
+    var d = document.createElement("div");
+    d.className = "ae";
+    d.id = "ae-" + k;
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = LBL[k];
+    var st = document.createElement("div");
+    st.className = "st";
+    st.textContent = "aucun";
+    d.appendChild(lbl);
+    d.appendChild(st);
+    d.addEventListener("click", makeCycle(k));
+    g.appendChild(d);
+  }
+  refreshNotes();
+}
+
+function makeCycle(k) {
+  return function() {
+    cur[k] = cur[k] === null ? "rouge" : cur[k] === "rouge" ? "orange" : null;
+    var d = document.getElementById("ae-" + k);
+    d.className = "ae" + (cur[k] ? " " + cur[k] : "");
+    d.querySelector(".st").textContent = cur[k] === "rouge" ? "Contient" : cur[k] === "orange" ? "Variable" : "aucun";
+    refreshNotes();
+  };
+}
+
+function refreshNotes() {
+  var active = [];
+  for (var i = 0; i < KEYS.length; i++) { if (cur[KEYS[i]]) active.push(KEYS[i]); }
+  var zone = document.getElementById("notes-zone");
+  var fields = document.getElementById("notes-fields");
+  if (active.length === 0) { zone.style.display = "none"; fields.innerHTML = ""; return; }
+  zone.style.display = "block";
+  var saved = {};
+  for (var i = 0; i < active.length; i++) {
+    var el = document.getElementById("ni-" + active[i]);
+    if (el) saved[active[i]] = el.value;
+  }
+  fields.innerHTML = "";
+  for (var i = 0; i < active.length; i++) {
+    var k = active[i];
+    var lv = cur[k];
+    var wrap = document.createElement("div");
+    wrap.className = "nf";
+    var nl = document.createElement("div");
+    nl.className = "nl " + lv;
+    nl.textContent = (lv === "rouge" ? "Rouge : " : "Orange : ") + LBL[k];
+    var nh = document.createElement("div");
+    nh.className = "nh";
+    nh.textContent = "Laisser vide = pas de commentaire affiche";
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.id = "ni-" + k;
+    inp.placeholder = "Note specifique pour cet aliment...";
+    inp.value = saved[k] || "";
+    wrap.appendChild(nl);
+    wrap.appendChild(nh);
+    wrap.appendChild(inp);
+    fields.appendChild(wrap);
+  }
+}
+
+function doAdd() {
+  var name = document.getElementById("inp-name").value.trim();
+  var image = document.getElementById("inp-img").value.trim();
+  var msg = document.getElementById("add-msg");
+  if (!name) { fbMsg(msg, "Le nom est requis.", "var(--or)"); return; }
+  for (var i = 0; i < foods.length; i++) {
+    if (foods[i].name.toLowerCase() === name.toLowerCase()) {
+      fbMsg(msg, "Cet aliment existe deja.", "var(--or)"); return;
+    }
+  }
+  var allergens = {}, notes = {};
+  for (var i = 0; i < KEYS.length; i++) {
+    var k = KEYS[i];
+    if (cur[k]) {
+      allergens[k] = cur[k];
+      var el = document.getElementById("ni-" + k);
+      if (el && el.value.trim()) notes[k] = el.value.trim();
+    }
+  }
+  foods.push({ name: name, allergens: allergens, notes: notes, image: image || null });
+  fbMsg(msg, name + " ajoute !", "var(--gr)");
+  document.getElementById("inp-name").value = "";
+  document.getElementById("inp-img").value = "";
+  buildAeGrid();
+}
+
+function renderList() {
+  var ul = document.getElementById("fle");
+  document.getElementById("list-cnt").textContent = foods.length + " aliment(s)";
+  ul.innerHTML = "";
+  for (var i = 0; i < foods.length; i++) {
+    var food = foods[i];
+    var ak = [];
+    for (var j = 0; j < KEYS.length; j++) { if (food.allergens[KEYS[j]]) ak.push(KEYS[j]); }
+    var li = document.createElement("li");
+    var nd = document.createElement("div");
+    nd.style.flex = "1";
+    var ns = document.createElement("div");
+    ns.style.fontWeight = "700";
+    ns.textContent = food.name;
+    nd.appendChild(ns);
+    var bd = document.createElement("div");
+    bd.className = "badges";
+    if (ak.length === 0) {
+      var nb = document.createElement("span");
+      nb.style.color = "var(--mu)"; nb.style.fontSize = ".78rem";
+      nb.textContent = "Aucun allergene";
+      bd.appendChild(nb);
+    } else {
+      for (var j = 0; j < ak.length; j++) {
+        var b = document.createElement("span");
+        b.className = "fb " + food.allergens[ak[j]];
+        b.textContent = LBL[ak[j]];
+        bd.appendChild(b);
+      }
+    }
+    nd.appendChild(bd);
+    var btn = document.createElement("button");
+    btn.className = "gb-sm";
+    btn.textContent = "Suppr.";
+    btn.addEventListener("click", makeDelete(i));
+    li.appendChild(nd);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  }
+}
+
+function makeDelete(i) {
+  return function() {
+    if (confirm("Supprimer " + foods[i].name + " ?")) { foods.splice(i, 1); renderList(); }
+  };
+}
+
+function makeDataJs() {
+  var out = "const ALLERGEN_KEYS = [\n";
+  out += "  \"gluten\",\"oeuf\",\"lait\",\"arachides\",\"fruitsCoque\",\n";
+  out += "  \"soja\",\"celeri\",\"moutarde\",\"sesame\",\"lupin\",\n";
+  out += "  \"poisson\",\"crustaces\",\"mollusques\",\"sulfites\",\n";
+  out += "  \"vegan\",\"vegetarien\",\"halal\",\"casher\"\n];\n\n";
+  out += "const ALLERGEN_LABELS = {\n";
+  out += "  gluten:\"Gluten\", oeuf:\"\\u0152uf\", lait:\"Lait\",\n";
+  out += "  arachides:\"Arachides\", fruitsCoque:\"Fruits \\u00e0 coque\",\n";
+  out += "  soja:\"Soja\", celeri:\"C\\u00e9leri\", moutarde:\"Moutarde\",\n";
+  out += "  sesame:\"S\\u00e9same\", lupin:\"Lupin\", poisson:\"Poisson\",\n";
+  out += "  crustaces:\"Crust\\u00e0ces\", mollusques:\"Mollusques\",\n";
+  out += "  sulfites:\"Sulfites\", vegan:\"Non v\\u00e9gan\",\n";
+  out += "  vegetarien:\"Non v\\u00e9g\\u00e9tarien\", halal:\"Non halal\", casher:\"Non casher\"\n};\n\n";
+  out += "const foods = [\n";
+  for (var i = 0; i < foods.length; i++) {
+    var food = foods[i];
+    var ak = Object.keys(food.allergens);
+    var nk = Object.keys(food.notes || {});
+    var aStr = "";
+    for (var j = 0; j < ak.length; j++) aStr += (j ? ", " : "") + ak[j] + ":\"" + food.allergens[ak[j]] + "\"";
+    var nStr = "";
+    for (var j = 0; j < nk.length; j++) nStr += (j ? ", " : "") + nk[j] + ":" + JSON.stringify(food.notes[nk[j]]);
+    out += "  { name: " + JSON.stringify(food.name) + ", allergens: {" + aStr + "}, notes: {" + nStr + "}";
+    if (food.image) out += ", image: " + JSON.stringify(food.image);
+    out += " },\n";
+  }
+  out += "];\n";
+  return out;
+}
+
+function renderExport() {
+  document.getElementById("exp-box").textContent = makeDataJs();
+}
+
+function doCopy() {
+  var m = document.getElementById("exp-msg");
+  navigator.clipboard.writeText(makeDataJs())
+    .then(function() { fbMsg(m, "Copie dans le presse-papier !", "var(--gr)"); })
+    .catch(function() { fbMsg(m, "Copie impossible - utilise Telecharger.", "var(--or)"); });
+}
+
+function doDl() {
+  var blob = new Blob([makeDataJs()], { type: "text/javascript" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "data.js";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  fbMsg(document.getElementById("exp-msg"), "Telechargement lance !", "var(--gr)");
+}
+
+function fbMsg(el, txt, color) {
+  el.textContent = txt; el.style.color = color;
+  setTimeout(function() { el.textContent = ""; }, 2600);
+}
+
+buildAeGrid();
+</script>
+</body>
+</html>

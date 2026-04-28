@@ -3,200 +3,203 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Sensas Allergène Checker</title>
+  <title>Sensas</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ========== ACCUEIL ========== -->
-<div id="screen-home" class="screen active">
-  <div class="content home-content">
-    <button class="btn btn-primary" onclick="showScreen('filtre')">🔍 Filtre Allergies</button>
-    <button class="btn btn-secondary" onclick="showScreen('liste')">📋 Liste des Aliments</button>
+<div id="s-home" class="screen active">
+  <div class="home-wrap">
+    <h1>🍽️ Sensas</h1>
+    <p>Vérificateur allergènes</p>
+    <button class="btn btn-primary" onclick="showScreen('s-filter')">🔍 Filtre Allergies</button>
+    <button class="btn btn-secondary" onclick="showScreen('s-list')">📋 Liste des Aliments</button>
   </div>
 </div>
 
-<!-- ========== FILTRE ALLERGIES ========== -->
-<div id="screen-filtre" class="screen">
+<div id="s-filter" class="screen">
   <div class="topbar">
-    <button class="btn-topbar" onclick="showScreen('home')">← Accueil</button>
+    <button class="btn-back" onclick="showScreen('s-home')">← Accueil</button>
     <span>Filtre Allergies</span>
-    <button class="btn-topbar btn-topbar-right" onclick="resetFiltre()">Reset ✕</button>
+    <button class="btn-reset" onclick="resetFilter()">Reset ✕</button>
   </div>
   <div class="content">
-    <div class="allergen-grid" id="allergen-grid"></div>
-    <div class="results-section" id="filter-results"></div>
+    <div class="allergen-grid" id="ag"></div>
+    <div id="fr"></div>
   </div>
 </div>
 
-<!-- ========== LISTE ALIMENTS ========== -->
-<div id="screen-liste" class="screen">
+<div id="s-list" class="screen">
   <div class="topbar">
-    <button class="btn-topbar" onclick="showScreen('home')">← Accueil</button>
+    <button class="btn-back" onclick="showScreen('s-home')">← Accueil</button>
     <span>Liste des Aliments</span>
+    <span></span>
   </div>
   <div class="content">
-    <ul class="food-list" id="food-list"></ul>
+    <ul class="food-list" id="fl"></ul>
   </div>
 </div>
 
-<!-- ========== MODAL DÉTAIL ALIMENT ========== -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
-  <div class="modal" id="modal-content"></div>
+<div class="modal-overlay" id="mo" onclick="overlayClick(event)">
+  <div class="modal" id="mb"></div>
 </div>
 
 <script src="data.js"></script>
 <script>
+var SEL = new Set();
 
-// ===== NAVIGATION =====
-function showScreen(name) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + name).classList.add('active');
-  if (name === 'filtre') buildAllergenGrid();
-  if (name === 'liste') buildFoodList();
+function showScreen(id) {
+  var all = document.querySelectorAll(".screen");
+  for (var i = 0; i < all.length; i++) all[i].classList.remove("active");
+  document.getElementById(id).classList.add("active");
   window.scrollTo(0, 0);
 }
 
-// ===== FILTRE ALLERGIES =====
-let selectedAllergens = new Set();
-
-function buildAllergenGrid() {
-  selectedAllergens = new Set();
-  const grid = document.getElementById('allergen-grid');
-  grid.innerHTML = ALLERGEN_KEYS.map(key => `
-    <label class="allergen-item" id="lbl-${key}" onclick="toggleAllergen('${key}')">
-      <span class="check-icon"></span>
-      <span>${ALLERGEN_LABELS[key]}</span>
-    </label>
-  `).join('');
-  document.getElementById('filter-results').innerHTML = '';
+function buildCheckboxes() {
+  var g = document.getElementById("ag");
+  for (var i = 0; i < ALLERGEN_KEYS.length; i++) {
+    var key = ALLERGEN_KEYS[i];
+    var d = document.createElement("div");
+    d.className = "allergen-item";
+    d.dataset.key = key;
+    var ic = document.createElement("span");
+    ic.className = "check-icon";
+    var lb = document.createElement("span");
+    lb.textContent = ALLERGEN_LABELS[key];
+    d.appendChild(ic);
+    d.appendChild(lb);
+    d.addEventListener("click", makeToggle(key, d));
+    g.appendChild(d);
+  }
 }
 
-function toggleAllergen(key) {
-  if (selectedAllergens.has(key)) selectedAllergens.delete(key);
-  else selectedAllergens.add(key);
-  document.getElementById('lbl-' + key).classList.toggle('checked', selectedAllergens.has(key));
-  runFilter();
+function makeToggle(key, el) {
+  return function() {
+    if (SEL.has(key)) { SEL.delete(key); el.classList.remove("checked"); }
+    else { SEL.add(key); el.classList.add("checked"); }
+    renderResults();
+  };
 }
 
-function resetFiltre() {
-  selectedAllergens.clear();
-  document.querySelectorAll('.allergen-item').forEach(el => el.classList.remove('checked'));
-  document.getElementById('filter-results').innerHTML = '';
+function resetFilter() {
+  SEL.clear();
+  var items = document.querySelectorAll(".allergen-item");
+  for (var i = 0; i < items.length; i++) items[i].classList.remove("checked");
+  renderResults();
 }
 
-function runFilter() {
-  const container = document.getElementById('filter-results');
-  if (selectedAllergens.size === 0) { container.innerHTML = ''; return; }
-
-  const grouped = [];
-  for (const key of ALLERGEN_KEYS) {
-    if (!selectedAllergens.has(key)) continue;
-    const items = foods.filter(f => f.allergens[key]);
-    if (items.length > 0) {
-      items.sort((a, b) => (a.allergens[key] === 'rouge' ? -1 : 1));
-      grouped.push({ key, items });
+function renderResults() {
+  var c = document.getElementById("fr");
+  if (SEL.size === 0) { c.innerHTML = ""; return; }
+  var keys = Array.from(SEL);
+  var rouge = [], orange = [], safe = [];
+  for (var i = 0; i < foods.length; i++) {
+    var food = foods[i];
+    var max = "ok";
+    for (var j = 0; j < keys.length; j++) {
+      var v = food.allergens[keys[j]];
+      if (v === "rouge") { max = "rouge"; break; }
+      if (v === "orange") max = "orange";
     }
+    if (max === "rouge") rouge.push(food);
+    else if (max === "orange") orange.push(food);
+    else safe.push(food);
   }
-
-  if (grouped.length === 0) {
-    container.innerHTML = `
-      <div class="success-box">
-        <p>✅</p>
-        <p>Aucun aliment à éviter !</p>
-        <p>Tous les aliments sont compatibles.</p>
-      </div>`;
-    return;
+  var html = "";
+  if (rouge.length) {
+    html += "<div class=\"result-group\"><h3>🔴 Contient (" + rouge.length + ")</h3><div>";
+    for (var i = 0; i < rouge.length; i++) html += makeTag(rouge[i], "rouge");
+    html += "</div></div>";
   }
-
-  container.innerHTML = grouped.map(({ key, items }) => `
-    <div class="result-group">
-      <h3>${ALLERGEN_LABELS[key]}</h3>
-      <div>${items.map(f => `
-        <span class="food-tag ${f.allergens[key]}"
-          ${f.allergens[key] === 'orange' ? `onclick="openFoodModal('${f.name}')"` : ''}>
-          ${f.allergens[key] === 'rouge' ? '❌' : '⚠️'} ${f.name}
-          ${f.allergens[key] === 'orange' ? '<small>ⓘ</small>' : ''}
-        </span>`).join('')}</div>
-    </div>`).join('');
+  if (orange.length) {
+    html += "<div class=\"result-group\"><h3>🟠 Variable (" + orange.length + ")</h3><div>";
+    for (var i = 0; i < orange.length; i++) html += makeTag(orange[i], "orange");
+    html += "</div></div>";
+  }
+  if (safe.length) {
+    html += "<div class=\"result-group\"><h3>✅ Sans risque (" + safe.length + ")</h3><div>";
+    for (var i = 0; i < safe.length; i++) html += makeTag(safe[i], "vert");
+    html += "</div></div>";
+  }
+  c.innerHTML = html;
+  var tags = c.querySelectorAll(".food-tag");
+  for (var i = 0; i < tags.length; i++) {
+    tags[i].addEventListener("click", makeFoodClick(tags[i].dataset.name));
+  }
 }
 
-// ===== LISTE ALIMENTS =====
-function buildFoodList() {
-  const sorted = [...foods].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
-  document.getElementById('food-list').innerHTML = sorted.map(f => `
-    <li onclick="openFoodModal('${f.name}')">
-      <span>${f.name}</span>
-      <span class="arrow">›</span>
-    </li>`).join('');
+function makeTag(food, cls) {
+  return "<span class=\"food-tag " + cls + "\" data-name=\"" + food.name.replace(/"/g, "&quot;") + "\">" + food.name + "</span>";
 }
 
-// ===== UTILITAIRE : nom fichier image =====
-// "Haricots verts" → "haricots verts.png"
-// Gère les caractères accentués (â, ê, é...) et les espaces
-function toImageName(name) {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '') // retire les accents
-    .replace(/\s+/g, ' ')            // espaces multiples → un seul
-    .trim() + '.png';
+function buildList() {
+  var ul = document.getElementById("fl");
+  for (var i = 0; i < foods.length; i++) {
+    var food = foods[i];
+    var li = document.createElement("li");
+    var sp = document.createElement("span");
+    sp.textContent = food.name;
+    var ar = document.createElement("span");
+    ar.className = "arrow";
+    ar.textContent = "›";
+    li.appendChild(sp);
+    li.appendChild(ar);
+    li.addEventListener("click", makeFoodClick(food.name));
+    ul.appendChild(li);
+  }
 }
 
-// ===== MODAL =====
-function openFoodModal(name) {
-  const food = foods.find(f => f.name === name);
+function makeFoodClick(name) {
+  return function() { openModal(name); };
+}
+
+function openModal(name) {
+  var food = null;
+  for (var i = 0; i < foods.length; i++) {
+    if (foods[i].name === name) { food = foods[i]; break; }
+  }
   if (!food) return;
-  const problematic = ALLERGEN_KEYS.filter(k => food.allergens[k]);
-  const safe = ALLERGEN_KEYS.filter(k => !food.allergens[k]);
-  const imgFile = toImageName(food.name);
-
-  const rows = problematic.map(k => `
-    <div class="allergen-row">
-      <span>${ALLERGEN_LABELS[k]}</span>
-      <span class="badge ${food.allergens[k]}">${food.allergens[k] === 'rouge' ? '❌ SÛR' : '⚠ VARIABLE'}</span>
-    </div>
-    ${food.allergens[k] === 'orange' ? `<div class="modal-expl">ℹ️ ${ALLERGEN_EXPL[k]}</div>` : ''}
-  `).join('');
-
-  document.getElementById('modal-content').innerHTML = `
-    <h2>${food.name}</h2>
-
-    ${problematic.length > 0 ? `
-      <div class="modal-section">
-        <h3>⚠ Allergènes présents</h3>
-        ${rows}
-      </div>` : `
-      <div class="success-box" style="margin:12px 0">
-        <p>✅</p>
-        <p>Aucun allergène connu</p>
-      </div>`}
-
-    ${safe.length > 0 ? `
-      <div class="modal-section">
-        <h3>✅ Sans risque pour</h3>
-        <div class="badge-list">${safe.map(k => `<span class="badge ok" style="margin:2px">${ALLERGEN_LABELS[k]}</span>`).join('')}</div>
-      </div>` : ''}
-
-    <div class="modal-img-wrap">
-      <img
-        src="images/${imgFile}"
-        alt="${food.name}"
-        class="modal-img"
-        onerror="this.parentElement.style.display='none'"
-      >
-    </div>
-
-    <button class="btn btn-back btn-sm" style="margin-top:16px;width:100%" onclick="closeModal()">Fermer</button>
-  `;
-  document.getElementById('modal-overlay').classList.add('open');
+  var notes = food.notes || {};
+  var ak = [], sk = [];
+  var skip = ["vegan","vegetarien","halal","casher"];
+  for (var i = 0; i < ALLERGEN_KEYS.length; i++) {
+    var k = ALLERGEN_KEYS[i];
+    if (food.allergens[k]) ak.push(k);
+    else if (skip.indexOf(k) === -1) sk.push(k);
+  }
+  var h = "<h2>" + food.name + "</h2>";
+  if (ak.length === 0) {
+    h += "<div class=\"success-box\"><div class=\"ico\">✅</div><div class=\"ok\">Aucun allergène connu</div><div class=\"sub\">Vérifiez l'étiquette du produit</div></div>";
+  } else {
+    h += "<div class=\"modal-section\"><h3>Allergènes</h3>";
+    for (var i = 0; i < ak.length; i++) {
+      var k = ak[i];
+      var lv = food.allergens[k];
+      var bt = lv === "rouge" ? "⛔ Contient" : "⚠️ Variable";
+      h += "<div class=\"allergen-row\"><span>" + ALLERGEN_LABELS[k] + "</span><span class=\"badge " + lv + "\">" + bt + "</span></div>";
+      if (notes[k]) h += "<div class=\"modal-expl\">" + notes[k] + "</div>";
+    }
+    h += "</div>";
+  }
+  if (sk.length > 0) {
+    h += "<div class=\"modal-section\"><h3>Compatible avec</h3><div class=\"badge-list\">";
+    for (var i = 0; i < sk.length; i++) h += "<span class=\"badge vert\">" + ALLERGEN_LABELS[sk[i]] + "</span>";
+    h += "</div></div>";
+  }
+  h += "<button class=\"btn-close\" onclick=\"closeModal()\">Fermer</button>";
+  document.getElementById("mb").innerHTML = h;
+  document.getElementById("mo").classList.add("open");
 }
 
-function closeModal(e) {
-  if (!e || e.target === document.getElementById('modal-overlay'))
-    document.getElementById('modal-overlay').classList.remove('open');
+function overlayClick(e) {
+  if (e.target === document.getElementById("mo")) closeModal();
+}
+function closeModal() {
+  document.getElementById("mo").classList.remove("open");
 }
 
+buildCheckboxes();
+buildList();
 </script>
 </body>
 </html>
