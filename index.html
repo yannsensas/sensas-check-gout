@@ -5,18 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Sensas</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .tabs{display:flex;gap:8px;margin-bottom:20px;}
+    .tab{flex:1;padding:9px 4px;border:2px solid var(--border);border-radius:10px;background:var(--surface);color:var(--muted);font-weight:700;font-size:.82rem;cursor:pointer;text-align:center;}
+    .tab.on{border-color:var(--blue);color:var(--blue);background:#1a2a4a;}
+    .epanel{display:none;} .epanel.on{display:block;}
+    .notice{border-radius:8px;padding:10px 14px;font-size:.85rem;margin-bottom:10px;display:none;}
+    .n-ok{background:var(--green-bg);border:1px solid #1f5c35;color:var(--green);}
+    .n-err{background:var(--orange-bg);border:1px solid #7a4d00;color:var(--orange);}
+    .iz{background:var(--surface);border:2px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;margin-bottom:14px;}
+    .iz p{color:var(--muted);margin-bottom:12px;font-size:.9rem;}
+    .esec{font-size:.73rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:14px 0 8px;}
+    .ae-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px;}
+    .ae{background:var(--surface2);border:2px solid var(--border);border-radius:9px;padding:8px 10px;cursor:pointer;user-select:none;}
+    .ae .lbl{font-size:.88rem;font-weight:700;color:var(--text);margin-bottom:3px;}
+    .ae .st{font-size:.73rem;color:var(--muted);}
+    .ae.rouge{border-color:var(--red);background:var(--red-bg);}
+    .ae.rouge .lbl,.ae.rouge .st{color:var(--red);}
+    .ae.orange{border-color:var(--orange);background:var(--orange-bg);}
+    .ae.orange .lbl,.ae.orange .st{color:var(--orange);}
+    .notes-zone{display:none;margin-bottom:12px;}
+    .nf{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px;margin-bottom:8px;}
+    .nf .nl{font-size:.8rem;font-weight:700;margin-bottom:3px;}
+    .nf .nh{font-size:.73rem;color:var(--muted);margin-bottom:6px;}
+    .nl.rouge{color:var(--red);} .nl.orange{color:var(--orange);}
+    .gb-mu{background:var(--surface2);color:var(--muted);border:1px solid var(--border);display:block;width:100%;padding:13px;border-radius:10px;font-size:.93rem;font-weight:700;cursor:pointer;text-align:center;margin-top:10px;}
+    .gb-sm{display:inline-block;width:auto;padding:6px 12px;font-size:.8rem;font-weight:700;cursor:pointer;border-radius:8px;border:1px solid #7f2020;background:var(--red-bg);color:var(--red);}
+    .fle{list-style:none;margin-top:6px;}
+    .fle li{background:var(--surface);border:1px solid var(--border);border-radius:10px;margin:6px 0;padding:12px 14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+    .fbadge{padding:2px 8px;border-radius:20px;font-size:.71rem;font-weight:700;}
+    .fbadge.rouge{background:var(--red-bg);color:var(--red);} .fbadge.orange{background:var(--orange-bg);color:var(--orange);}
+    .exp-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+    .eb{display:block;width:100%;padding:14px;border:none;border-radius:var(--radius);font-size:.93rem;font-weight:700;cursor:pointer;text-align:center;color:#fff;}
+    .eb-copy{background:var(--blue-dim);} .eb-dl{background:#1f5c35;}
+    .exp-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:monospace;font-size:.71rem;white-space:pre-wrap;word-break:break-all;max-height:260px;overflow-y:auto;color:var(--muted);}
+    .fbm{font-size:.83rem;text-align:center;min-height:20px;margin:6px 0;}
+    label{display:block;font-size:.83rem;color:var(--muted);margin:12px 0 4px;}
+    .einput{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.93rem;}
+    .einput:focus{outline:2px solid var(--blue);border-color:transparent;}
+
+    /* ── Sélection en salle ── */
+    .slot-list{list-style:none;margin-top:6px;}
+    .slot-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+    .slot-num{width:24px;text-align:right;font-size:.8rem;color:var(--muted);font-weight:700;flex-shrink:0;}
+    .slot-wrap{position:relative;flex:1;}
+    .slot-input{width:100%;padding:10px 12px;background:var(--surface2);border:2px solid var(--border);border-radius:8px;color:var(--text);font-size:.9rem;}
+    .slot-input:focus{outline:none;border-color:var(--blue);}
+    .slot-input.ok{border-color:#1f5c35;}
+    .slot-input.err{border-color:var(--red);}
+    .autocomplete-list{position:absolute;top:100%;left:0;right:0;background:var(--surface);border:1px solid var(--blue);border-radius:0 0 8px 8px;z-index:50;max-height:160px;overflow-y:auto;display:none;}
+    .autocomplete-list.open{display:block;}
+    .ac-item{padding:8px 12px;font-size:.88rem;cursor:pointer;}
+    .ac-item:hover{background:var(--surface2);color:var(--blue);}
+    .list-sep{padding:8px 0 4px;font-size:.73rem;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);border-top:1px solid var(--border);margin-top:6px;}
+    .list-num{display:inline-block;width:22px;font-size:.75rem;font-weight:800;color:var(--blue);flex-shrink:0;}
+  </style>
 </head>
 <body>
 
+<!-- ACCUEIL -->
 <div id="s-home" class="screen active">
   <div class="home-wrap">
-    <h1>🍽️ Sensas</h1>
-    <p>Vérificateur allergènes</p>
-    <button class="btn btn-primary" onclick="showScreen('s-filter')">🔍 Filtre Allergies</button>
+    <button class="btn btn-primary"   onclick="showScreen('s-filter')">🔍 Filtre Allergies</button>
     <button class="btn btn-secondary" onclick="showScreen('s-list')">📋 Liste des Aliments</button>
+    <button class="btn btn-secondary" onclick="showScreen('s-editor')">✏️ Editeur</button>
   </div>
 </div>
 
+<!-- FILTRE -->
 <div id="s-filter" class="screen">
   <div class="topbar">
     <button class="btn-back" onclick="showScreen('s-home')">← Accueil</button>
@@ -29,6 +85,7 @@
   </div>
 </div>
 
+<!-- LISTE -->
 <div id="s-list" class="screen">
   <div class="topbar">
     <button class="btn-back" onclick="showScreen('s-home')">← Accueil</button>
@@ -40,6 +97,79 @@
   </div>
 </div>
 
+<!-- EDITEUR -->
+<div id="s-editor" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="showScreen('s-home')">← Accueil</button>
+    <span>Editeur</span>
+    <span></span>
+  </div>
+  <div class="content">
+    <div class="tabs">
+      <button class="tab on" id="t-import" onclick="eGo('import')">📂 Import</button>
+      <button class="tab"    id="t-salle"  onclick="eGo('salle')">🎯 En salle</button>
+      <button class="tab"    id="t-add"    onclick="eGo('add')">➕ Ajouter</button>
+      <button class="tab"    id="t-elist"  onclick="eGo('elist')">📋 Liste</button>
+      <button class="tab"    id="t-export" onclick="eGo('export')">📤 Export</button>
+    </div>
+
+    <!-- IMPORT -->
+    <div class="epanel on" id="ep-import">
+      <div class="iz">
+        <p>Sélectionne ton fichier <strong>data.js</strong>.</p>
+        <input type="file" id="efi" accept=".js" style="display:none" onchange="doImport(event)">
+        <button class="btn btn-secondary" style="width:auto;display:inline-block;padding:12px 20px;" onclick="document.getElementById('efi').click()">📂 Choisir data.js</button>
+      </div>
+      <div class="notice n-ok"  id="en-ok"></div>
+      <div class="notice n-err" id="en-err"></div>
+      <button class="gb-mu" onclick="eGo('salle')">Continuer sans importer →</button>
+    </div>
+
+    <!-- EN SALLE -->
+    <div class="epanel" id="ep-salle">
+      <p class="esec">🎯 Les 15 aliments en salle</p>
+      <p style="font-size:.83rem;color:var(--muted);margin-bottom:12px;">Tape pour chercher dans ta liste d'aliments. Tous les 15 slots doivent être remplis.</p>
+      <ul class="slot-list" id="slot-list"></ul>
+      <p class="fbm" id="salle-msg"></p>
+    </div>
+
+    <!-- AJOUTER -->
+    <div class="epanel" id="ep-add">
+      <p class="esec">Informations</p>
+      <label>Nom de l'aliment *</label>
+      <input type="text" id="inp-name" class="einput" placeholder="Ex: Cornichons">
+      <label>Image (optionnel)</label>
+      <input type="text" id="inp-img" class="einput" placeholder="Ex: images/cornichons.jpg">
+      <p class="esec">Allergènes — clic pour cycler : aucun → rouge → orange</p>
+      <div class="ae-grid" id="ae-grid"></div>
+      <div class="notes-zone" id="notes-zone">
+        <p class="esec">📝 Note par allergène pour CET aliment (optionnel)</p>
+        <div id="notes-fields"></div>
+      </div>
+      <button class="btn btn-primary" onclick="doAdd()">✅ Ajouter l'aliment</button>
+      <p class="fbm" id="add-msg"></p>
+    </div>
+
+    <!-- LISTE EDITEUR -->
+    <div class="epanel" id="ep-elist">
+      <p id="elist-cnt" style="color:var(--muted);font-size:.83rem;margin-bottom:6px;"></p>
+      <ul class="fle" id="fle"></ul>
+    </div>
+
+    <!-- EXPORT -->
+    <div class="epanel" id="ep-export">
+      <div class="exp-btns">
+        <button class="eb eb-copy" onclick="doCopy()">📋 Copier</button>
+        <button class="eb eb-dl"   onclick="doDl()">⬇️ Télécharger</button>
+      </div>
+      <p class="fbm" id="exp-msg"></p>
+      <p class="esec">Aperçu</p>
+      <div class="exp-box" id="exp-box"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
 <div class="modal-overlay" id="mo" onclick="overlayClick(event)">
   <div class="modal" id="mb"></div>
 </div>
@@ -47,7 +177,11 @@
 <script src="data.js"></script>
 <script>
 var SEL = new Set();
+var eFoods = [];
+var eCur = {};
+var eSalle = ["","","","","","","","","","","","","","",""];
 
+// ── Navigation ───────────────────────────────────────────────
 function showScreen(id) {
   var all = document.querySelectorAll(".screen");
   for (var i = 0; i < all.length; i++) all[i].classList.remove("active");
@@ -55,13 +189,13 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 
+// ── Filtre (sur les 15 en salle) ────────────────────────────
 function buildCheckboxes() {
   var g = document.getElementById("ag");
   for (var i = 0; i < ALLERGEN_KEYS.length; i++) {
     var key = ALLERGEN_KEYS[i];
     var d = document.createElement("div");
     d.className = "allergen-item";
-    d.dataset.key = key;
     var ic = document.createElement("span");
     ic.className = "check-icon";
     var lb = document.createElement("span");
@@ -88,13 +222,24 @@ function resetFilter() {
   renderResults();
 }
 
+function getSalleFoods() {
+  var result = [];
+  for (var i = 0; i < selection.length; i++) {
+    for (var j = 0; j < foods.length; j++) {
+      if (foods[j].name === selection[i]) { result.push(foods[j]); break; }
+    }
+  }
+  return result;
+}
+
 function renderResults() {
   var c = document.getElementById("fr");
   if (SEL.size === 0) { c.innerHTML = ""; return; }
   var keys = Array.from(SEL);
+  var salleFoods = getSalleFoods();
   var rouge = [], orange = [], safe = [];
-  for (var i = 0; i < foods.length; i++) {
-    var food = foods[i];
+  for (var i = 0; i < salleFoods.length; i++) {
+    var food = salleFoods[i];
     var max = "ok";
     for (var j = 0; j < keys.length; j++) {
       var v = food.allergens[keys[j]];
@@ -132,27 +277,70 @@ function makeTag(food, cls) {
   return "<span class=\"food-tag " + cls + "\" data-name=\"" + food.name.replace(/"/g, "&quot;") + "\">" + food.name + "</span>";
 }
 
+// ── Liste des aliments ───────────────────────────────────────
 function buildList() {
   var ul = document.getElementById("fl");
-  for (var i = 0; i < foods.length; i++) {
-    var food = foods[i];
-    var li = document.createElement("li");
-    var sp = document.createElement("span");
-    sp.textContent = food.name;
-    var ar = document.createElement("span");
-    ar.className = "arrow";
-    ar.textContent = "›";
-    li.appendChild(sp);
-    li.appendChild(ar);
-    li.addEventListener("click", makeFoodClick(food.name));
+  ul.innerHTML = "";
+
+  // Section "En salle"
+  var sep1 = document.createElement("li");
+  sep1.className = "list-sep";
+  sep1.textContent = "🎯 En salle aujourd'hui";
+  sep1.style.listStyle = "none";
+  ul.appendChild(sep1);
+
+  for (var i = 0; i < selection.length; i++) {
+    var food = null;
+    for (var j = 0; j < foods.length; j++) {
+      if (foods[j].name === selection[i]) { food = foods[j]; break; }
+    }
+    if (!food) continue;
+    var li = makeFoodLi(food, i + 1);
     ul.appendChild(li);
   }
+
+  // Section "Stock complet"
+  var sep2 = document.createElement("li");
+  sep2.className = "list-sep";
+  sep2.textContent = "📦 Stock complet";
+  sep2.style.listStyle = "none";
+  ul.appendChild(sep2);
+
+  for (var i = 0; i < foods.length; i++) {
+    var li = makeFoodLi(foods[i], null);
+    ul.appendChild(li);
+  }
+}
+
+function makeFoodLi(food, num) {
+  var li = document.createElement("li");
+  var left = document.createElement("span");
+  left.style.display = "flex";
+  left.style.alignItems = "center";
+  left.style.gap = "6px";
+  if (num !== null) {
+    var n = document.createElement("span");
+    n.className = "list-num";
+    n.textContent = num + ".";
+    left.appendChild(n);
+  }
+  var sp = document.createElement("span");
+  sp.textContent = food.name;
+  left.appendChild(sp);
+  var ar = document.createElement("span");
+  ar.className = "arrow";
+  ar.textContent = "›";
+  li.appendChild(left);
+  li.appendChild(ar);
+  li.addEventListener("click", makeFoodClick(food.name));
+  return li;
 }
 
 function makeFoodClick(name) {
   return function() { openModal(name); };
 }
 
+// ── Modal ────────────────────────────────────────────────────
 function openModal(name) {
   var food = null;
   for (var i = 0; i < foods.length; i++) {
@@ -198,8 +386,385 @@ function closeModal() {
   document.getElementById("mo").classList.remove("open");
 }
 
+// ── Editeur ──────────────────────────────────────────────────
+function eGo(tab) {
+  var tabs = ["import","salle","add","elist","export"];
+  for (var i = 0; i < tabs.length; i++) {
+    document.getElementById("t-" + tabs[i]).classList.remove("on");
+    document.getElementById("ep-" + tabs[i]).classList.remove("on");
+  }
+  document.getElementById("t-" + tab).classList.add("on");
+  document.getElementById("ep-" + tab).classList.add("on");
+  if (tab === "elist") renderEList();
+  if (tab === "export") renderExport();
+}
+
+function doImport(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      var code = ev.target.result;
+
+      // Import foods
+      var start = code.indexOf("const foods = [");
+      if (start === -1) throw new Error("foods introuvable");
+      var bi = code.indexOf("[", start);
+      var raw = extractArray(code, bi);
+      raw = raw.replace(/\/\/[^\n]*/g, "");
+      raw = raw.replace(/,\s*([}\]])/g, "$1");
+      raw = raw.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)/g, '$1"$2"$3');
+      eFoods = JSON.parse(raw);
+
+      // Import selection
+      var si = code.indexOf("const selection = [");
+      if (si !== -1) {
+        var sbi = code.indexOf("[", si);
+        var sraw = extractArray(code, sbi);
+        sraw = sraw.replace(/\/\/[^\n]*/g, "");
+        sraw = sraw.replace(/,\s*([}\]])/g, "$1");
+        eSalle = JSON.parse(sraw);
+      }
+
+      buildSlots();
+      showNotice("en-ok", eFoods.length + " aliments et sélection chargés depuis " + file.name);
+      showNotice("en-err", null);
+      setTimeout(function() { eGo("salle"); }, 800);
+    } catch(err) {
+      showNotice("en-err", "Erreur : " + err.message);
+      showNotice("en-ok", null);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function extractArray(code, bi) {
+  var depth = 0, end = -1;
+  for (var i = bi; i < code.length; i++) {
+    if (code[i] === "[") depth++;
+    else if (code[i] === "]") { depth--; if (depth === 0) { end = i; break; } }
+  }
+  if (end === -1) throw new Error("tableau mal formé");
+  return code.slice(bi, end + 1);
+}
+
+function showNotice(id, msg) {
+  var el = document.getElementById(id);
+  if (msg) { el.textContent = msg; el.style.display = "block"; }
+  else { el.style.display = "none"; }
+}
+
+// ── Slots en salle ───────────────────────────────────────────
+function buildSlots() {
+  var ul = document.getElementById("slot-list");
+  ul.innerHTML = "";
+  for (var i = 0; i < 15; i++) {
+    var li = document.createElement("li");
+    li.className = "slot-row";
+
+    var num = document.createElement("span");
+    num.className = "slot-num";
+    num.textContent = (i + 1) + ".";
+
+    var wrap = document.createElement("div");
+    wrap.className = "slot-wrap";
+
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.className = "slot-input";
+    inp.placeholder = "Chercher un aliment...";
+    inp.value = eSalle[i] || "";
+    inp.dataset.idx = i;
+    if (inp.value) inp.classList.add("ok");
+
+    var acList = document.createElement("div");
+    acList.className = "autocomplete-list";
+    acList.id = "ac-" + i;
+
+    inp.addEventListener("input", makeAcInput(i));
+    inp.addEventListener("blur", makeAcBlur(i));
+    inp.addEventListener("focus", makeAcInput(i));
+
+    wrap.appendChild(inp);
+    wrap.appendChild(acList);
+    li.appendChild(num);
+    li.appendChild(wrap);
+    ul.appendChild(li);
+  }
+}
+
+function makeAcInput(idx) {
+  return function(e) {
+    var val = e.target.value.toLowerCase().trim();
+    var names = eFoods.length ? eFoods.map(function(f){ return f.name; }) : foods.map(function(f){ return f.name; });
+    var matches = names.filter(function(n){ return n.toLowerCase().indexOf(val) !== -1; });
+    var ac = document.getElementById("ac-" + idx);
+    ac.innerHTML = "";
+    if (matches.length === 0 || val === "") { ac.classList.remove("open"); return; }
+    for (var i = 0; i < matches.length; i++) {
+      var item = document.createElement("div");
+      item.className = "ac-item";
+      item.textContent = matches[i];
+      item.addEventListener("mousedown", makeAcSelect(idx, matches[i]));
+      ac.appendChild(item);
+    }
+    ac.classList.add("open");
+  };
+}
+
+function makeAcSelect(idx, name) {
+  return function() {
+    var inputs = document.querySelectorAll(".slot-input");
+    inputs[idx].value = name;
+    inputs[idx].classList.add("ok");
+    inputs[idx].classList.remove("err");
+    eSalle[idx] = name;
+    document.getElementById("ac-" + idx).classList.remove("open");
+  };
+}
+
+function makeAcBlur(idx) {
+  return function(e) {
+    setTimeout(function() {
+      document.getElementById("ac-" + idx).classList.remove("open");
+      var val = e.target.value.trim();
+      var names = eFoods.length ? eFoods.map(function(f){ return f.name; }) : foods.map(function(f){ return f.name; });
+      var valid = names.indexOf(val) !== -1;
+      e.target.classList.toggle("ok", valid && val !== "");
+      e.target.classList.toggle("err", !valid && val !== "");
+      eSalle[idx] = valid ? val : "";
+    }, 150);
+  };
+}
+
+// ── Ajouter aliment ──────────────────────────────────────────
+function buildAeGrid() {
+  eCur = {};
+  var g = document.getElementById("ae-grid");
+  g.innerHTML = "";
+  for (var i = 0; i < ALLERGEN_KEYS.length; i++) {
+    var k = ALLERGEN_KEYS[i];
+    eCur[k] = null;
+    var d = document.createElement("div");
+    d.className = "ae";
+    d.id = "ae-" + k;
+    var lbl = document.createElement("div");
+    lbl.className = "lbl";
+    lbl.textContent = ALLERGEN_LABELS[k];
+    var st = document.createElement("div");
+    st.className = "st";
+    st.textContent = "aucun";
+    d.appendChild(lbl);
+    d.appendChild(st);
+    d.addEventListener("click", makeCycle(k));
+    g.appendChild(d);
+  }
+  refreshNotes();
+}
+
+function makeCycle(k) {
+  return function() {
+    eCur[k] = eCur[k] === null ? "rouge" : eCur[k] === "rouge" ? "orange" : null;
+    var d = document.getElementById("ae-" + k);
+    d.className = "ae" + (eCur[k] ? " " + eCur[k] : "");
+    d.querySelector(".st").textContent = eCur[k] === "rouge" ? "Contient" : eCur[k] === "orange" ? "Variable" : "aucun";
+    refreshNotes();
+  };
+}
+
+function refreshNotes() {
+  var active = [];
+  for (var i = 0; i < ALLERGEN_KEYS.length; i++) { if (eCur[ALLERGEN_KEYS[i]]) active.push(ALLERGEN_KEYS[i]); }
+  var zone = document.getElementById("notes-zone");
+  var fields = document.getElementById("notes-fields");
+  if (active.length === 0) { zone.style.display = "none"; fields.innerHTML = ""; return; }
+  zone.style.display = "block";
+  var saved = {};
+  for (var i = 0; i < active.length; i++) {
+    var el = document.getElementById("ni-" + active[i]);
+    if (el) saved[active[i]] = el.value;
+  }
+  fields.innerHTML = "";
+  for (var i = 0; i < active.length; i++) {
+    var k = active[i];
+    var lv = eCur[k];
+    var wrap = document.createElement("div");
+    wrap.className = "nf";
+    var nl = document.createElement("div");
+    nl.className = "nl " + lv;
+    nl.textContent = (lv === "rouge" ? "Rouge : " : "Orange : ") + ALLERGEN_LABELS[k];
+    var nh = document.createElement("div");
+    nh.className = "nh";
+    nh.textContent = "Laisser vide = pas de commentaire affiché";
+    var inp = document.createElement("input");
+    inp.type = "text";
+    inp.className = "einput";
+    inp.id = "ni-" + k;
+    inp.placeholder = "Note spécifique pour cet aliment...";
+    inp.value = saved[k] || "";
+    wrap.appendChild(nl);
+    wrap.appendChild(nh);
+    wrap.appendChild(inp);
+    fields.appendChild(wrap);
+  }
+}
+
+function doAdd() {
+  var name = document.getElementById("inp-name").value.trim();
+  var image = document.getElementById("inp-img").value.trim();
+  var msg = document.getElementById("add-msg");
+  if (!name) { fbMsg(msg, "Le nom est requis.", "var(--orange)"); return; }
+  var target = eFoods.length ? eFoods : foods;
+  for (var i = 0; i < target.length; i++) {
+    if (target[i].name.toLowerCase() === name.toLowerCase()) {
+      fbMsg(msg, "Cet aliment existe déjà.", "var(--orange)"); return;
+    }
+  }
+  var allergens = {}, notes = {};
+  for (var i = 0; i < ALLERGEN_KEYS.length; i++) {
+    var k = ALLERGEN_KEYS[i];
+    if (eCur[k]) {
+      allergens[k] = eCur[k];
+      var el = document.getElementById("ni-" + k);
+      if (el && el.value.trim()) notes[k] = el.value.trim();
+    }
+  }
+  var newFood = { name: name, allergens: allergens, notes: notes, image: image || null };
+  if (eFoods.length) eFoods.push(newFood); else foods.push(newFood);
+  fbMsg(msg, name + " ajouté !", "var(--green)");
+  document.getElementById("inp-name").value = "";
+  document.getElementById("inp-img").value = "";
+  buildAeGrid();
+  buildSlots();
+}
+
+// ── Liste éditeur ────────────────────────────────────────────
+function renderEList() {
+  var target = eFoods.length ? eFoods : foods;
+  var ul = document.getElementById("fle");
+  document.getElementById("elist-cnt").textContent = target.length + " aliment(s)";
+  ul.innerHTML = "";
+  for (var i = 0; i < target.length; i++) {
+    var food = target[i];
+    var ak = [];
+    for (var j = 0; j < ALLERGEN_KEYS.length; j++) { if (food.allergens[ALLERGEN_KEYS[j]]) ak.push(ALLERGEN_KEYS[j]); }
+    var li = document.createElement("li");
+    var nd = document.createElement("div");
+    nd.style.flex = "1";
+    var ns = document.createElement("div");
+    ns.style.fontWeight = "700";
+    ns.textContent = food.name;
+    var bd = document.createElement("div");
+    bd.style.cssText = "display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;";
+    if (ak.length === 0) {
+      var nb = document.createElement("span");
+      nb.style.cssText = "color:var(--muted);font-size:.78rem;";
+      nb.textContent = "Aucun allergène";
+      bd.appendChild(nb);
+    } else {
+      for (var j = 0; j < ak.length; j++) {
+        var b = document.createElement("span");
+        b.className = "fbadge " + food.allergens[ak[j]];
+        b.textContent = ALLERGEN_LABELS[ak[j]];
+        bd.appendChild(b);
+      }
+    }
+    nd.appendChild(ns);
+    nd.appendChild(bd);
+    var btn = document.createElement("button");
+    btn.className = "gb-sm";
+    btn.textContent = "Suppr.";
+    btn.addEventListener("click", makeDelete(i));
+    li.appendChild(nd);
+    li.appendChild(btn);
+    ul.appendChild(li);
+  }
+}
+
+function makeDelete(i) {
+  return function() {
+    var target = eFoods.length ? eFoods : foods;
+    if (confirm("Supprimer " + target[i].name + " ?")) { target.splice(i, 1); renderEList(); }
+  };
+}
+
+// ── Export ───────────────────────────────────────────────────
+function getSalleForExport() {
+  var inputs = document.querySelectorAll(".slot-input");
+  var result = [];
+  for (var i = 0; i < inputs.length; i++) result.push(inputs[i].value.trim());
+  return result;
+}
+
+function makeDataJs() {
+  var target = eFoods.length ? eFoods : foods;
+  var salleArr = getSalleForExport();
+  var out = "const ALLERGEN_KEYS = [\n";
+  out += "  \"gluten\",\"oeuf\",\"lait\",\"arachides\",\"fruitsCoque\",\n";
+  out += "  \"soja\",\"celeri\",\"moutarde\",\"sesame\",\"lupin\",\n";
+  out += "  \"poisson\",\"crustaces\",\"mollusques\",\"sulfites\",\n";
+  out += "  \"vegan\",\"vegetarien\",\"halal\",\"casher\"\n];\n\n";
+  out += "const ALLERGEN_LABELS = {\n";
+  out += "  \"gluten\":\"Gluten\", \"oeuf\":\"\\u0152uf\", \"lait\":\"Lait\",\n";
+  out += "  \"arachides\":\"Arachides\", \"fruitsCoque\":\"Fruits \\u00e0 coque\",\n";
+  out += "  \"soja\":\"Soja\", \"celeri\":\"C\\u00e9leri\", \"moutarde\":\"Moutarde\",\n";
+  out += "  \"sesame\":\"S\\u00e9same\", \"lupin\":\"Lupin\", \"poisson\":\"Poisson\",\n";
+  out += "  \"crustaces\":\"Crust\\u00e0ces\", \"mollusques\":\"Mollusques\",\n";
+  out += "  \"sulfites\":\"Sulfites\", \"vegan\":\"Non v\\u00e9gan\",\n";
+  out += "  \"vegetarien\":\"Non v\\u00e9g\\u00e9tarien\", \"halal\":\"Non halal\", \"casher\":\"Non casher\"\n};\n\n";
+  out += "const selection = [\n";
+  for (var i = 0; i < 15; i++) out += "  " + JSON.stringify(salleArr[i] || "") + ",\n";
+  out += "];\n\n";
+  out += "const foods = [\n";
+  for (var i = 0; i < target.length; i++) {
+    var food = target[i];
+    var ak = Object.keys(food.allergens);
+    var nk = Object.keys(food.notes || {});
+    var aStr = "";
+    for (var j = 0; j < ak.length; j++) aStr += (j ? ", " : "") + "\"" + ak[j] + "\":\"" + food.allergens[ak[j]] + "\"";
+    var nStr = "";
+    for (var j = 0; j < nk.length; j++) nStr += (j ? ", " : "") + "\"" + nk[j] + "\":" + JSON.stringify(food.notes[nk[j]]);
+    out += "  { \"name\": " + JSON.stringify(food.name) + ", \"allergens\": {" + aStr + "}, \"notes\": {" + nStr + "}";
+    if (food.image) out += ", \"image\": " + JSON.stringify(food.image);
+    out += " },\n";
+  }
+  out += "];\n";
+  return out;
+}
+
+function renderExport() {
+  document.getElementById("exp-box").textContent = makeDataJs();
+}
+
+function doCopy() {
+  var m = document.getElementById("exp-msg");
+  navigator.clipboard.writeText(makeDataJs())
+    .then(function() { fbMsg(m, "Copié dans le presse-papier !", "var(--green)"); })
+    .catch(function() { fbMsg(m, "Copie impossible - utilise Télécharger.", "var(--orange)"); });
+}
+
+function doDl() {
+  var blob = new Blob([makeDataJs()], { type: "text/javascript" });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = "data.js";
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  fbMsg(document.getElementById("exp-msg"), "Téléchargement lancé !", "var(--green)");
+}
+
+function fbMsg(el, txt, color) {
+  el.textContent = txt; el.style.color = color;
+  setTimeout(function() { el.textContent = ""; }, 2600);
+}
+
+// ── Init ─────────────────────────────────────────────────────
 buildCheckboxes();
 buildList();
+buildAeGrid();
+buildSlots();
 </script>
 </body>
 </html>
