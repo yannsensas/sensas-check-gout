@@ -174,6 +174,13 @@
   <div class="modal" id="mb"></div>
 </div>
 
+<div id="img-overlay" style="display:none" onclick="if(event.target===this)closeImg()">
+  <div class="img-preview-wrap">
+    <button class="img-close-btn" onclick="closeImg()">✕</button>
+    <img id="img-preview" src="" alt="Aperçu">
+  </div>
+</div>
+
 <script src="data.js"></script>
 <script>
 var SEL = new Set();
@@ -355,7 +362,14 @@ function openModal(name) {
     if (food.allergens[k]) ak.push(k);
     else if (skip.indexOf(k) === -1) sk.push(k);
   }
-  var h = "<h2>" + food.name + "</h2>";
+
+  var imgHtml = "";
+if (food.image) {
+  imgHtml = "<button class=\"img-icon-btn\" onclick=\"openImg('" + food.image.replace(/'/g, "\\'") + "')\" title=\"Voir l'image\">🖼️</button>";
+}
+
+  var h = "<div class=\"modal-header\">" + imgHtml + "<h2>" + food.name + "</h2></div>";
+
   if (ak.length === 0) {
     h += "<div class=\"success-box\"><div class=\"ico\">✅</div><div class=\"ok\">Aucun allergène connu</div><div class=\"sub\">Vérifiez l'étiquette du produit</div></div>";
   } else {
@@ -384,6 +398,17 @@ function overlayClick(e) {
 }
 function closeModal() {
   document.getElementById("mo").classList.remove("open");
+}
+
+function openImg(src) {
+  document.getElementById("img-preview").src = src;
+  document.getElementById("img-overlay").style.display = "block";
+  document.body.style.overflow = "hidden";
+}
+
+function closeImg() {
+  document.getElementById("img-overlay").style.display = "none";
+  document.body.style.overflow = "";
 }
 
 // ── Editeur ──────────────────────────────────────────────────
