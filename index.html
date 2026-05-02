@@ -174,11 +174,9 @@
   <div class="modal" id="mb"></div>
 </div>
 
-<div id="img-overlay" style="display:none" onclick="if(event.target===this)closeImg()">
-  <div class="img-preview-wrap">
-    <button class="img-close-btn" onclick="closeImg()">✕</button>
-    <img id="img-preview" src="" alt="Aperçu">
-  </div>
+<div id="img-overlay" onclick="if(event.target===this)closeImg()">
+  <button class="img-close-btn" onclick="closeImg()">✕</button>
+  <img id="img-preview" src="" alt="Aperçu">
 </div>
 
 <script src="data.js"></script>
@@ -402,12 +400,12 @@ function closeModal() {
 
 function openImg(src) {
   document.getElementById("img-preview").src = src;
-  document.getElementById("img-overlay").style.display = "block";
+  document.getElementById("img-overlay").classList.add("open");
   document.body.style.overflow = "hidden";
 }
 
 function closeImg() {
-  document.getElementById("img-overlay").style.display = "none";
+  document.getElementById("img-overlay").classList.remove("open");
   document.body.style.overflow = "";
 }
 
