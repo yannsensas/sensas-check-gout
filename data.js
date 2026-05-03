@@ -10,7 +10,7 @@ const ALLERGEN_LABELS = {
   "arachides":"Arachides", "fruitsCoque":"Fruits \u00e0 coque",
   "soja":"Soja", "celeri":"C\u00e9leri", "moutarde":"Moutarde",
   "sesame":"S\u00e9same", "lupin":"Lupin", "poisson":"Poisson",
-  "crustaces":"Crust\u00e0ces", "mollusques":"Mollusques",
+  "crustaces":"Crustac\u00e9s", "mollusques":"Mollusques",
   "sulfites":"Sulfites", "vegan":"Non v\u00e9gan",
   "vegetarien":"Non v\u00e9g\u00e9tarien", "halal":"Non halal", "casher":"Non casher"
 };
