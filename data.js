@@ -10,7 +10,7 @@ const ALLERGEN_LABELS = {
   "arachides":"Arachides", "fruitsCoque":"Fruits \u00e0 coque",
   "soja":"Soja", "celeri":"C\u00e9leri", "moutarde":"Moutarde",
   "sesame":"S\u00e9same", "lupin":"Lupin", "poisson":"Poisson",
-  "crustaces":"Crustac\u00e9s", "mollusques":"Mollusques",
+  "crustaces":"Crust\u00e0ces", "mollusques":"Mollusques",
   "sulfites":"Sulfites", "vegan":"Non v\u00e9gan",
   "vegetarien":"Non v\u00e9g\u00e9tarien", "halal":"Non halal", "casher":"Non casher"
 };
@@ -25,12 +25,12 @@ const selection = [
   "Oignons blancs",
   "Dragibus",
   "Amandes",
-  "Choux de Bruxelles",
+  "Haricots blancs",
   "Vers de farine",
   "Haricots verts",
   "Chocolat au lait",
-  "Carottes",
-  "Chamallows (carrefour classic)",
+  "Piment",
+  "Popcorn",
 ];
 
 const foods = [
@@ -59,4 +59,5 @@ const foods = [
   { "name": "Amandes", "allergens": {"fruitsCoque":"rouge"}, "notes": {} },
   { "name": "Vers de farine", "allergens": {"gluten":"orange", "crustaces":"rouge", "mollusques":"rouge", "vegan":"rouge", "vegetarien":"rouge", "halal":"rouge", "casher":"rouge"}, "notes": {"gluten":"Peut contenir des traces", "crustaces":"Allergie croisée", "mollusques":"Allergie croisée"}, "image": "images/vers_de_farine.jpg" },
   { "name": "Grillons", "allergens": {"gluten":"orange", "crustaces":"rouge", "mollusques":"rouge", "vegan":"rouge", "vegetarien":"rouge", "halal":"rouge", "casher":"rouge"}, "notes": {"gluten":"Peut contenir des traces", "crustaces":"Allergie croisée", "mollusques":"Allergie croisée"}, "image": "images/grillons.jpg" },
+  { "name": "Popcorn", "allergens": {"lait":"orange"}, "notes": {"lait":"Peut contenir des traces"}, "image": "images/popcorn.jpg" },
 ];
