@@ -242,35 +242,49 @@ function renderResults() {
   if (SEL.size === 0) { c.innerHTML = ""; return; }
   var keys = Array.from(SEL);
   var salleFoods = getSalleFoods();
-  var rouge = [], orange = [], safe = [];
-  for (var i = 0; i < salleFoods.length; i++) {
-    var food = salleFoods[i];
-    var max = "ok";
-    for (var j = 0; j < keys.length; j++) {
-      var v = food.allergens[keys[j]];
-      if (v === "rouge") { max = "rouge"; break; }
-      if (v === "orange") max = "orange";
-    }
-    if (max === "rouge") rouge.push(food);
-    else if (max === "orange") orange.push(food);
-    else safe.push(food);
-  }
   var html = "";
-  if (rouge.length) {
-    html += "<div class=\"result-group\"><h3>🔴 Contient (" + rouge.length + ")</h3><div>";
-    for (var i = 0; i < rouge.length; i++) html += makeTag(rouge[i], "rouge");
-    html += "</div></div>";
+
+  for (var ki = 0; ki < keys.length; ki++) {
+    var key = keys[ki];
+    var label = ALLERGEN_LABELS[key];
+    var rougeItems = [];
+    var orangeItems = [];
+
+    for (var i = 0; i < salleFoods.length; i++) {
+      var food = salleFoods[i];
+      var v = food.allergens[key];
+      if (v === "rouge") rougeItems.push(food);
+      else if (v === "orange") orangeItems.push(food);
+    }
+
+    if (rougeItems.length === 0 && orangeItems.length === 0) continue;
+
+    html += '<div class="result-allergen">';
+    html += '<div class="result-allergen-title">' + label + '</div>';
+
+    if (rougeItems.length > 0) {
+      html += '<div class="result-allergen-row">';
+      html += '<span class="result-level rouge">⛔ Contient</span>';
+      html += '<div class="result-tags">';
+      for (var i = 0; i < rougeItems.length; i++) html += makeTag(rougeItems[i], "rouge");
+      html += '</div></div>';
+    }
+
+    if (orangeItems.length > 0) {
+      html += '<div class="result-allergen-row">';
+      html += '<span class="result-level orange">⚠️ Variable</span>';
+      html += '<div class="result-tags">';
+      for (var i = 0; i < orangeItems.length; i++) html += makeTag(orangeItems[i], "orange");
+      html += '</div></div>';
+    }
+
+    html += '</div>';
   }
-  if (orange.length) {
-    html += "<div class=\"result-group\"><h3>🟠 Variable (" + orange.length + ")</h3><div>";
-    for (var i = 0; i < orange.length; i++) html += makeTag(orange[i], "orange");
-    html += "</div></div>";
+
+  if (html === "") {
+    html = '<div class="result-allergen"><div class="result-allergen-title">✅ Aucun aliment concerné parmi les 15 en salle</div></div>';
   }
-  if (safe.length) {
-    html += "<div class=\"result-group\"><h3>✅ Sans risque (" + safe.length + ")</h3><div>";
-    for (var i = 0; i < safe.length; i++) html += makeTag(safe[i], "vert");
-    html += "</div></div>";
-  }
+
   c.innerHTML = html;
   var tags = c.querySelectorAll(".food-tag");
   for (var i = 0; i < tags.length; i++) {
